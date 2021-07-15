@@ -1,46 +1,43 @@
 import {
   Scene,
-  AxesHelper,
   PerspectiveCamera,
   WebGLRenderer,
   Vector3,
-  BufferGeometry,
-  LineBasicMaterial,
-  Line,
+  Mesh,
+  CylinderGeometry,
+  MeshLambertMaterial,
+  AmbientLight,
+  PointLight,
 } from 'three';
 
 import { WEBGL } from 'three/examples/jsm/WebGL';
 
+import Stats from 'stats.js';
+
 let scene: Scene;
 let camera: PerspectiveCamera;
 let renderer: WebGLRenderer;
+let mesh: Mesh;
+let stats: Stats;
 
 function initScene() {
   scene = new Scene();
 }
 
 function initLight() {
-  console.log('init light');
+  const light1 = new AmbientLight(0xff0000);
+  light1.position.set(100, 100, 200);
+  scene.add(light1);
+  const light2 = new PointLight(0x00ff00);
+  light2.position.set(0, 0, 300);
+  scene.add(light2);
 }
 
 function initObject() {
-  const geometry = new BufferGeometry();
-  geometry.setFromPoints([new Vector3(-100, 0, 0), new Vector3(100, 0, 0)]);
-  const materialX = new LineBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.8 });
-  const materialY = new LineBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.8 });
-  for (let i = 0; i < 11; i += 1) {
-    const lineX = new Line(geometry, materialX);
-    lineX.position.y = 100 - i * 20;
-    scene.add(lineX);
-
-    const lineY = new Line(geometry, materialY);
-    lineY.position.x = i * 20 - 100;
-    lineY.rotation.z = (90 * Math.PI) / 180;
-    scene.add(lineY);
-  }
-
-  const axes = new AxesHelper(500);
-  scene.add(axes);
+  const geometry = new CylinderGeometry(100, 150, 200);
+  const material = new MeshLambertMaterial({ color: 0xffff00 });
+  mesh = new Mesh(geometry, material);
+  scene.add(mesh);
 }
 
 function initCamera() {
@@ -54,15 +51,32 @@ function initCamera() {
   camera.lookAt(new Vector3(0, 0, 0));
 }
 
+function initStats() {
+  stats = new Stats();
+  document.body.appendChild(stats.dom);
+}
+
 function initRenderer() {
-  renderer = new WebGLRenderer();
+  renderer = new WebGLRenderer({
+    antialias: true, // 抗锯齿
+  });
   renderer.setSize(window.innerWidth, window.innerHeight);
+  // renderer.setClearColor(0xffffff, 1.0);
   document.body.appendChild(renderer.domElement);
+
+  initStats();
 }
 
 function render() {
   requestAnimationFrame(render);
+  const txtFov: HTMLInputElement = document.getElementById('txtFov') as HTMLInputElement;
+  if (txtFov) {
+    camera.fov = Number(txtFov.value);
+    camera.updateProjectionMatrix();
+  }
+
   renderer.render(scene, camera);
+  stats.update();
 }
 
 function work() {
