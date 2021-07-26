@@ -4,47 +4,49 @@ import {
   WebGLRenderer,
   Vector3,
   Mesh,
-  MeshLambertMaterial,
-  AmbientLight,
-  PointLight,
   BoxGeometry,
-  AxesHelper,
+  TextureLoader,
+  MeshBasicMaterial,
+  DoubleSide,
+  Texture,
 } from 'three';
 
 import { WEBGL } from 'three/examples/jsm/WebGL';
 
 import Stats from 'stats.js';
 
+import clock from './js/clock.js';
+
 let scene: Scene;
 let camera: PerspectiveCamera;
 let renderer: WebGLRenderer;
-let mesh: Mesh;
 let stats: Stats;
-
+let texture: Texture;
+let mesh: Mesh;
 function initScene() {
   scene = new Scene();
 }
 
 function initLight() {
-  const light2 = new PointLight(0x00ff00, 1, 300);
-  light2.position.set(0, 0, 200);
-  scene.add(light2);
+  console.log('init light');
 }
 
 function initObject() {
-  const geometry = new BoxGeometry(100, 100, 100);
-  const material = new MeshLambertMaterial({ color: 0xffffff });
-  mesh = new Mesh(geometry, material);
-  scene.add(mesh);
+  const geometry = new BoxGeometry(150, 150, 150);
 
-  const axes = new AxesHelper(500);
-  scene.add(axes);
+  const canvas = clock();
+
+  texture = new Texture(canvas);
+  const material = new MeshBasicMaterial({ map: texture });
+  mesh = new Mesh(geometry, material);
+
+  scene.add(mesh);
 }
 
 function initCamera() {
   camera = new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
-  camera.position.x = 500;
-  camera.position.y = 500;
+  camera.position.x = 0;
+  camera.position.y = 0;
   camera.position.z = 500;
   camera.up.x = 0;
   camera.up.y = 1;
@@ -70,6 +72,9 @@ function initRenderer() {
 
 function render() {
   requestAnimationFrame(render);
+  texture.needsUpdate = true;
+  mesh.rotation.y -= 0.01;
+  mesh.rotation.x -= 0.01;
   renderer.render(scene, camera);
   stats.update();
 }
@@ -90,3 +95,13 @@ function work() {
 window.addEventListener('DOMContentLoaded', () => {
   work();
 });
+
+window.addEventListener(
+  'resize',
+  () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  },
+  false
+);

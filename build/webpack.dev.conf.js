@@ -3,6 +3,7 @@ const { merge } = require('webpack-merge');
 const { devServer } = require('./config');
 const { getEntries } = require('./tools');
 const { resolve } = require('./tools');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const baseConfig = require('./webpack.base.conf');
 
 const { entries, htmlPlugins } = getEntries();
@@ -11,7 +12,7 @@ const devConfig = {
   entry: {
     ...entries,
   },
-    module: {
+  module: {
     rules: [
       {
         test: /\.js$/,
@@ -26,7 +27,18 @@ const devConfig = {
       },
     ],
   },
-    plugins: [new HotModuleReplacementPlugin(), ...htmlPlugins],
+  plugins: [
+    new HotModuleReplacementPlugin(),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: resolve('demo/static'),
+          to: resolve(`dist/static`),
+        },
+      ],
+    }),
+    ...htmlPlugins,
+  ],
   devServer: devServer,
 };
 
